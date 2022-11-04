@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: ${PROJECT_NAME}:latest
+    container_name: ${PROJECT_NAME}-odoo
+    tty: true
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    volumes:
+      - web:/var/lib/odoo 
+      - addons:/mnt/extra-addons
+      - config:/etc/odoo/odoo.conf
+  db:
+    image: postgres:14.1-alpine
+    container_name: ${PROJECT_NAME}-postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+volumes:
+  web:
+    driver: local
+    name: ${PROJECT_NAME}-web
+  db:
+    driver: local
+    name: ${PROJECT_NAME}-db
+  addons:
+    driver: local
+    name: ${PROJECT_NAME}-addons
+    driver_opts:
+      type: none
+      device: ${PWD}/addons
+      o: bind
+  config:
+    driver: local
+    name: ${PROJECT_NAME}-config
+    driver_opts:
+      type: none
+      device: ${PWD}/.docker-dev/odoo.conf
+      o: bind
+
