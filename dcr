@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+docker compose restart \
+  && docker exec -it $PROJECT_NAME-odoo \
+    bash -c "odoo -u $1 -d dev --db_user odoo --db_password odoo --stop-after-init" \
+  && docker logs -f --tail 0 $PROJECT_NAME-odoo
