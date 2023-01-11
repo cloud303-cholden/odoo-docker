@@ -1,23 +1,21 @@
-version: '3.8'
+version: "3.8"
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    build: .
     image: ${PROJECT_NAME}:latest
-    container_name: ${PROJECT_NAME}-odoo
+    container_name: ${PROJECT_NAME}-web
     tty: true
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8069:8069"
     volumes:
-      - web:/var/lib/odoo 
+      - web:/var/lib/odoo
       - addons:/mnt/extra-addons
-      - config:/etc/odoo/odoo.conf
   db:
-    image: postgres:14.1-alpine
-    container_name: ${PROJECT_NAME}-postgres
+    image: postgres:13-alpine
+    container_name: ${PROJECT_NAME}-db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=odoo
@@ -27,6 +25,11 @@ services:
       - "5432:5432"
     volumes:
       - db:/var/lib/postgresql/data
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+        interval: 1s
+        timeout: 1s
+        retries: 3
 volumes:
   web:
     driver: local
@@ -40,12 +43,5 @@ volumes:
     driver_opts:
       type: none
       device: ${PWD}/addons
-      o: bind
-  config:
-    driver: local
-    name: ${PROJECT_NAME}-config
-    driver_opts:
-      type: none
-      device: ${PWD}/.docker-dev/odoo.conf
       o: bind
 
