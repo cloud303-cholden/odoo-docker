@@ -1,0 +1,8 @@
+ARG BASE_IMAGE
+FROM $BASE_IMAGE
+
+COPY ./odoo.conf /etc/odoo/
+COPY ./addons /mnt/extra-addons
+COPY ./requirements.txt /requirements.txt
+
+RUN pip3 install -r requirements.txt
